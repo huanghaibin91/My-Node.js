@@ -14,15 +14,19 @@ Node.js核心模块：
 
 - HTTP服务器与客户端
 
+- 模块和包
+
 ----------
 
-- 设计高性能web服务器的要点：事件驱动，非阻塞I/O
+- 设计高性能web服务器的要点：事件驱动，非阻塞I/O（异步式 I/O，为了处理异步 I/O，线程必须有事件循环，不断地检查有没有未处理的事件，依次予以处理）
+
+![](./images/IO.png)
 
 - 在Node中，模块分为两类：一类是Node提供的模块，称为核心模块；另一类是用户编写的模块，称为用户模块
 
 - Node.js 所有的异步 I/O 操作在完成时都会发送一个事件到事件队列
 
-- 
+- 磁盘读写或网络通信（统称为 I/O 操作）
 
 ## 全局对象 ##
 
@@ -33,6 +37,14 @@ Node.js核心模块：
 
 - process 是一个全局变量，即 global 对象的属性。它用于描述当前 Node.js 进程状态
 的对象，提供了一个与操作系统的简单接口
+
+	- process.argv是命令行参数数组，第一个元素是 node， 第二个元素是脚本文件名，从第三个元素开始每个元素是一个运行参数
+
+	- process.stdout是标准输出流，通常我们使用的 console.log() 向标准输出打印字符
+
+	- process.stdin是标准输入流，初始时它是被暂停的，要想从标准输入读取数据，你必须恢复流，并手动编写流的事件响应函数
+
+	- process.nextTick(callback)的功能是为事件循环设置一项任务， Node.js 会在下次事件循环调响应时调用 callback，不要使用 setTimeout(fn,0)代替 process.nextTick(callback)，前者比后者效率要低得多
 
 - console 用于提供控制台标准输出
 
@@ -50,7 +62,7 @@ Node.js核心模块：
 
 - events 模块只提供了一个对象： events.EventEmitter。 EventEmitter 的核心就
 是事件发射与事件监听器功能的封装，EventEmitter 的每个事件由一个事件名和若干个参
-数组成，事件名是一个字符串
+数组成，事件名是一个字符串，调动`var EventEmitter = require('events').EventEmitter;`
 
 - EventEmitter 支持若干个事件监听器。当事件发射时，注册到这个事件的事件监听器被依次调用，事件参数作为回调函数参数传递
 
@@ -75,6 +87,10 @@ Node.js核心模块：
 
 - 大多数时候我们不会直接使用 EventEmitter，而是在对象中继承它。包括 fs、 net、
 http 在内的，只要是支持事件响应的核心模块都是 EventEmitter 的子类
+
+- Node.js 程序由事件循环开始，到事件循环结束，所有的逻辑都是事件的回调函数，所以 Node.js 始终在事件循环中，程序入口就是事件循环第一个事件的回调函数。事件的回调函数在执行的过程中，可能会发出 I/O 请求或直接发射（emit）事件，执行完毕后再返回事件循环，事件循环会检查事件队列中有没有未处理的事件，直到程序结束
+
+![](./images/event.png)
 
 ## 文件系统 fs ##
 
@@ -107,16 +123,18 @@ bytesRead 和 buffer，分别表示读取的字节数和缓冲区对象
 ## HTTP服务器和客户端 ##
 
 - Node.js 标准库提供了 http 模块，其中封装了一个高效的 HTTP 服务器和一个简易的
-HTTP客户端，http.Server 是一个基于事件的 HTTP服务器，http.request 则是一个
+HTTP客户端，http.server 是一个基于事件的 HTTP服务器，http.request 则是一个
 HTTP 客户端工具，用于向 HTTP 服务器发起请求
+
+- node.js不会在代码修改后刷新，因为 Node.js 只有在第一次引用到某部份时才会去解析脚
+本文件，以后都会直接访问内存，避免重复载入，可以使用安装包解决，例如supervisor
 
 - HTTP服务器
 
 	- http.Server 是 http 模块中的 HTTP 服务器对象，用 Node.js 做的所有基于 HTTP 协
 议的系统，如网站、社交应用甚至代理服务器，都是基于 http.Server 实现的
 
-	- http.createServer 创建了一个 http.Server 的实例，将一个函数作为 HTTP 请求处理函数。这个函数接受两个参数，分别是请求对象（ req ）和响应对象（ res ）
-
+		- http.createServer 创建了一个 http.Server 的实例，将一个函数作为 HTTP 请求处理函数。这个函数接受两个参数，分别是请求对象（ req ）和响应对象（ res ），是一个便捷操作
 		- http.Server 是一个基于事件的 HTTP 服务器，所有的请求都被封装为独立的事件
 		- request：当客户端请求到来时，该事件被触发，提供两个参数 req 和res，分别是
 		http.ServerRequest 和 http.ServerResponse 的实例，表示请求和响应信息。http提供了一个捷径：http.createServer([requestListener]) ，功能是创建一个HTTP服务器并将requestListener 作为 request 事件的监听函数
@@ -175,6 +193,9 @@ HTTP 客户端工具，用于向 HTTP 服务器发起请求
 	个已经产生而且正在进行中的 HTTP请求。它提供一个 response 事件，即 http.request
 	或 http.get 第二个参数指定的回调函数的绑定对象
 
+		- request.abort()：终止正在发送的请求。
+		- request.setTimeout(timeout, [callback])：设置请求超时时间， timeout 为毫秒数。当请求超时以后， callback 将会被调用
+
 	- http.ClientResponse 与 http.ServerRequest 相似，提供了三个事件 data、 end
 	和 close，分别在数据到达、传输结束和连接结束时触发，其中 data 事件传递一个参数
 	chunk，表示接收到的数据http.ClientResponse 还提供了以下几个特殊的函数。
@@ -186,3 +207,25 @@ HTTP 客户端工具，用于向 HTTP 服务器发起请求
 		- response.resume()：从暂停的状态中恢复
 		
 	![](./images/clientresponse.png)
+
+## 模块和包 ##
+
+- Node.js 提供了require函数来调用其他模块，而且模块都是基于文件
+
+- 模块是 Node.js 应用程序的基本组成部分，文件和模块是一一对应的。一个Node.js 文件就是一个模块，这个文件可能是 JavaScript 代码、 JSON 或者编译过的 C/C++ 扩展
+
+	- Node.js 提供了 exports 和 require 两个对象，其中 exports 是模块公开的接口， require 用于从外部获取一个模块的接口，即所获取模块的 exports 对象
+
+	- exports 本身仅仅是一个普通的空对象，即 {}，它专门用来声明接口
+
+	- require 不会重复加载模块，也就是说无论调用多少次 require， 获得的模块都是同一个
+
+- 创建包，Node.js 的包是一个目录，其中包含一个 JSON 格式的包说明文件 package.json。严格符合 CommonJS 规范的包应该具备以下特征：
+
+	- package.json 必须在包的顶层目录下； 
+	- 二进制文件应该在 bin 目录下； 
+	- JavaScript 代码应该在 lib 目录下； 
+	- 文档应该在 doc 目录下； 
+	- 单元测试应该在 test 目录下
+
+- Node.js 在调用某个包时，会首先检查包中 package.json 文件的 main 字段，将其作为包的接口模块，如果 package.json 或 main 字段不存在，会尝试寻找 index.js 或 index.node 作为包的接口
