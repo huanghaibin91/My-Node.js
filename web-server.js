@@ -1,4 +1,4 @@
-var http = require('http');
+var http = require('http'); // node自带的HTTP模块
 
 http.createServer(function (request, response) {
     // 发送 HTTP 头部 
