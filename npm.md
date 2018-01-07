@@ -84,3 +84,27 @@
     - 如果只是修复bug，需要更新Z位。
     - 如果是新增了功能，但是向下兼容，需要更新Y位。
     - 如果有大变动，向下不兼容，需要更新X位。
+
+-npm scripts，npm脚本，npm 允许在package.json文件里面，使用scripts字段定义脚本命令，使用`npm run`可以查看当前所有的npm脚本命令
+
+		{
+		    // package.json中有一个script对象，他的每一个属性就对应一段脚本命令
+		    "scripts": {
+		    	"build": "node build.js"
+		  	}
+		}
+
+		// git bash控制台执行脚本命令
+		$ npm run build
+		// 上面的命令等同于下面命令
+		$ node build.js
+
+四个常用的 npm 脚本有简写形式：
+
+- `npm start`是`npm run start`；
+- `npm stop`是`npm run stop`的简写；
+- `npm test`是`npm run test`的简写；
+- `npm restart`是`npm run stop && npm run restart && npm run start`的简写。
+
+
+		
