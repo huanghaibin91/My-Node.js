@@ -1,6 +1,5 @@
 # My-Node.js
 
-Node.js笔记
 
 Node.js核心模块：
 
@@ -18,9 +17,9 @@ Node.js核心模块：
 
 ----------
 
-- 设计高性能web服务器的要点：事件驱动，非阻塞I/O（异步式 I/O，为了处理异步 I/O，线程必须有事件循环，不断地检查有没有未处理的事件，依次予以处理）
+- 设计高性能web服务器的要点：事件驱动，非阻塞I/O（异步式I/O，为了处理异步I/O，线程必须有事件循环，不断地检查有没有未处理的事件，依次予以处理）
 
-![](./images/IO.png)
+![](../images/IO.png)
 
 - 在Node中，模块分为两类：一类是Node提供的模块，称为核心模块；另一类是用户编写的模块，称为用户模块
 
@@ -124,7 +123,7 @@ http 在内的，只要是支持事件响应的核心模块都是 EventEmitter �
 
 ## 文件系统 fs ##
 
-- fs 模块是文件操作的封装，它提供了文件的读取、写入、更名、删除、遍历目录、链接等 POSIX 文件系统操作，fs 模块中所有的操作都提供了异步的和同步的两个版本
+- fs 模块是文件操作的封装，它提供了文件的读取、写入、更名、删除、遍历目录、链接等 POSIX 文件系统操作，fs 模块中所有的操作都提供了异步的和同步的两个版本。文件系统常使用路径，node中有`__dirname`（前面有两个下划线），表示该文件所在目录的路径。
 
 - fs.readFile(filename,[encoding],[callback(err,data)])是最简单的读取文件的函数。它接受一个必选参数 filename，表示要读取的文件名。第二个参数 encoding是可选的，表示文件的字符编码。 callback 是回调函数，用于接收文件的内容
 
@@ -164,14 +163,14 @@ HTTP 客户端工具，用于向 HTTP 服务器发起请求
 	- http.Server 是 http 模块中的 HTTP 服务器对象，用 Node.js 做的所有基于 HTTP 协
 议的系统，如网站、社交应用甚至代理服务器，都是基于 http.Server 实现的
 
-		- http.createServer 创建了一个 http.Server 的实例，将一个函数作为 HTTP 请求处理函数。这个函数接受两个参数，分别是请求对象（ req ）和响应对象（ res ），是一个便捷操作
-		- http.Server 是一个基于事件的 HTTP 服务器，所有的请求都被封装为独立的事件
+		- http.createServer 创建了一个 http.Server 的实例，将一个函数作为 HTTP 请求处理函数。这个函数接受两个参数，分别是请求对象（ req ）和响应对象（ res ），是一个便捷操作，每次有新的HTTP请求就会触发回调函数；
+		- http.Server 是一个基于事件的 HTTP 服务器，所有的请求都被封装为独立的事件；
 		- request：当客户端请求到来时，该事件被触发，提供两个参数 req 和res，分别是
-		http.ServerRequest 和 http.ServerResponse 的实例，表示请求和响应信息。http提供了一个捷径：http.createServer([requestListener]) ，功能是创建一个HTTP服务器并将requestListener 作为 request 事件的监听函数
+		http.ServerRequest 和 http.ServerResponse 的实例，表示请求和响应信息。http提供了一个捷径：http.createServer([requestListener]) ，功能是创建一个HTTP服务器并将requestListener 作为 request 事件的监听函数；
 		- connection：当 TCP 连接建立时，该事件被触发，提供一个参数 socket，为
 		net.Socket 的实例。 connection 事件的粒度要大于 request，因为客户端在
-		Keep-Alive 模式下可能会在同一个连接内发送多次请求。
-		- close ：当服务器关闭时，该事件被触发。注意不是在用户连接断开时
+		Keep-Alive 模式下可能会在同一个连接内发送多次请求；
+		- close ：当服务器关闭时，该事件被触发。注意不是在用户连接断开时；
 
 	- http.ServerRequest 是 HTTP 请求的信息，是后端开发者最关注的内容。它一般由http.Server 的 request 事件发送，作为第一个参数传递，通常简称 request 或 req。HTTP 请求一般可以分为两部分： 请求头（Request Header）和请求体（Requset Body），
 
@@ -189,8 +188,7 @@ HTTP 客户端工具，用于向 HTTP 服务器发起请求
 
 		- response.writeHead(statusCode, [headers])：向请求的客户端发送响应头。
 		statusCode 是 HTTP 状态码，如 200 （请求成功）、 404 （未找到）等。 headers
-		是一个类似关联数组的对象，表示响应头的每个属性。该函数在一个请求内最多只
-		能调用一次，如果不调用，则会自动生成一个响应头。
+		是一个类似关联数组的对象，表示响应头的每个属性。该函数在一个请求内最多只能调用一次，如果不调用，则会自动生成一个响应头。添加和移除响应头的顺序可以随意，但一定要在调用response.write()或 response.end()之前；
 		- response.write(data, [encoding])：向请求的客户端发送响应内容。 data 是
 		一个 Buffer 或字符串，表示要发送的内容。如果 data 是字符串，那么需要指定
 		encoding 来说明它的编码方式，默认是 utf-8。在 response.end 调用之前，
